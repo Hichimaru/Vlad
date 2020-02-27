@@ -1,0 +1,456 @@
+using System;
+usingSystem.Collections.Generic;
+usingSystem.ComponentModel;
+usingSystem.Data;
+usingSystem.Drawing;
+using System.IO;
+usingSystem.Linq;
+usingSystem.Text;
+usingSystem.Threading.Tasks;
+usingSystem.Windows.Forms;
+
+namespace CSharpTest2
+{
+public partial class Form1 : Form
+    {
+        List<string>firstImg;
+
+        Bitmap bmp, bmp2;
+int x, y,z1, z2, firNum, step;
+double z;
+
+
+
+public Form1()
+        {
+InitializeComponent();
+        }
+
+private void button3_Click(object sender, EventArgs e)
+        {
+
+OpenFileDialog ofd3 = new OpenFileDialog();
+            ofd3.Multiselect = true;
+if (ofd3.ShowDialog() == DialogResult.OK)
+            {
+firstImg = ofd3.FileNames.ToList();
+                label2.Text = string.Format("Выбранно {0} изображений", firstImg.Count);
+            }
+            bmp2 = new Bitmap(Bitmap.FromFile(firstImg[0]));
+            pictureBox2.Image = bmp2;
+
+        }
+
+private void pictureBox2_MouseDown(object sender, MouseEventArgs e)
+        {
+if (e.Button == MouseButtons.Left)
+            {
+                x = Cursor.Position.X -285;
+                y = Cursor.Position.Y -69;
+            }
+            label3.Text = string.Format("x = {0} y = {1}", x, y);
+        }
+
+private void button4_Click(object sender, EventArgs e)
+        {
+firNum = 448;
+step = 2;
+foreach (var el in firstImg)
+            {
+bmp = new Bitmap(Bitmap.FromFile(el), new Size(1200, 1000));
+                Color pixel = bmp.GetPixel(x, y);
+int L = (pixel.R + pixel.G + pixel.B) / 3;
+firNum = firNum + step;
+
+StreamWriter writer = new StreamWriter("Info1.txt", true);
+writer.WriteLine(/*firNum + " " + */L);
+writer.Close();
+
+chart1.Series[1].Points.AddXY(firNum, L);
+
+
+
+
+            }
+        }
+
+private void pictureBox3_MouseDown(object sender, MouseEventArgs e)
+        {
+if (e.Button == MouseButtons.Left)
+            {
+                x = Cursor.Position.X -285;
+                y = Cursor.Position.Y -69;
+            }
+            label5.Text = string.Format("x = {0} y = {1}", x, y);
+        }
+
+private void buttonPic3_Click(object sender, EventArgs e)
+        {
+OpenFileDialog ofd2 = new OpenFileDialog();
+            ofd2.Multiselect = true;
+if (ofd2.ShowDialog() == DialogResult.OK)
+            {
+firstImg = ofd2.FileNames.ToList();
+                label4.Text = string.Format("Выбранно {0} изображений", firstImg.Count);
+            }
+            bmp2 = new Bitmap(Bitmap.FromFile(firstImg[0]));
+            pictureBox3.Image = bmp2;
+
+        }
+
+private void buttonCom3_Click(object sender, EventArgs e)
+        {
+firNum = 448;
+step = 2;
+foreach (var el in firstImg)
+            {
+bmp = new Bitmap(Bitmap.FromFile(el), new Size(1200, 1000));
+                Color pixel = bmp.GetPixel(x, y);
+int L = (pixel.R + pixel.G + pixel.B) / 3;
+firNum = firNum + step;
+
+StreamWriter writer = new StreamWriter("Info3.txt", true);
+writer.WriteLine(/*firNum + " " + */L);
+writer.Close();
+
+chart1.Series[2].Points.AddXY(firNum, L);
+
+            }
+        }
+
+private void buttonCorr_Click(object sender, EventArgs e)
+        {
+
+chart2.Series[0].Points.Clear();
+
+
+var values1 = new List<int>();
+var values2 = new List<int>();
+
+string file1 = File.ReadAllText("Info1.txt");
+string file2 = File.ReadAllText("Info1.txt");
+
+var nums1 = file1
+                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(n =>int.Parse(n)).ToArray();
+var nums2 = file2
+                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(n =>int.Parse(n)).ToArray();
+
+var begin1 = int.Parse(textBox1.Text);
+
+firNum = 448;
+step = 2;
+            z = 0;
+for (intnnn = begin1; nnn< begin1 + 10; nnn++)
+            {
+values1.Add(nums1[nnn]);
+            }
+int xxx = values1.Count;
+
+for (int j = 0; j < nums2.Length - 9; j++)
+            {
+for (int m = 0 + j; m < xxx + j; m++)
+                {
+values2.Add(nums2[m]);
+                }
+
+firNum = firNum + step;
+
+double result = Corr(values1.ToArray(), values2.ToArray());
+chart2.Series[0].Points.AddXY(firNum, result);
+
+if(result > z)
+                {
+                    z = result;
+                    z1 = firNum;
+                    z2 = (z1 - 450) / 2;
+                }
+
+labelCorP.Text = string.Format("Максимальныйкоэффициенткор - ции = {0} надлиневолны {1}({2})", z,z1,z2);
+values2.Clear();
+            }
+
+        }
+
+private void button5_Click(object sender, EventArgs e)
+        {
+var values1 = new List<int>();
+var values2 = new List<int>();
+
+string file1 = File.ReadAllText("Info1.txt");
+string file2 = File.ReadAllText("Info2.txt");
+string file3 = File.ReadAllText("Info3.txt");
+
+
+var nums1 = file1
+                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(n =>int.Parse(n)).ToArray();
+var nums2 = file2
+                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(n =>int.Parse(n)).ToArray();
+var nums3 = file3
+                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(n =>int.Parse(n)).ToArray();
+
+
+values2.Clear();
+values1.Clear();
+
+for (int j = 0; j < 250; j = j + 10)
+            {
+for (int m = 0 + j; m < 10 + j; m++)
+                {
+values2.Add(nums1[m]);
+values1.Add(nums2[m]);
+                }
+
+
+
+double result = Corr(values1.ToArray(), values2.ToArray());
+
+StreamWriter writer = new StreamWriter("CorrIP10.txt", true);
+writer.WriteLine(/*firNum + " " + */result);
+writer.Close();
+
+values2.Clear();
+values1.Clear();
+
+
+            }
+
+for (int j = 0; j < 250; j = j + 10)
+            {
+for (int m = 0 + j; m < 10 + j; m++)
+                {
+values1.Add(nums1[m]);
+values2.Add(nums3[m]);
+                }
+
+
+
+double result = Corr(values1.ToArray(), values2.ToArray());
+
+StreamWriter writer = new StreamWriter("CorrPnP10.txt", true);
+writer.WriteLine(/*firNum + " " + */result);
+writer.Close();
+
+values2.Clear();
+values1.Clear();
+
+            }
+
+
+
+stringfileIP = File.ReadAllText("CorrIP10.txt");
+stringfilePnP = File.ReadAllText("CorrPnP10.txt");
+
+varnumsIP = fileIP
+                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(n =>double.Parse(n)).ToArray();
+
+varnumsPnP = filePnP
+                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(n =>double.Parse(n)).ToArray();
+
+chart4.Series[0].Points.Clear();
+chart4.Series[1].Points.Clear();
+
+for ( inti = 0; i< 25; i++)
+            {
+chart4.Series[0].Points.AddXY(i+1, numsIP[i]);
+chart4.Series[1].Points.AddXY(i + 1, numsPnP[i]);
+            }
+
+        } // графиквыборки 10, построение, удаление
+
+private void button6_Click(object sender, EventArgs e)
+        {
+File.Delete("CorrIP10.txt");
+File.Delete("CorrPnP10.txt");
+        }
+
+private void button7_Click(object sender, EventArgs e)
+        {
+File.Delete("Info1.txt");
+File.Delete("Info2.txt");
+File.Delete("Info3.txt");
+chart1.Series[0].Points.Clear();
+chart1.Series[1].Points.Clear();
+chart1.Series[2].Points.Clear();
+        }
+
+private void button8_Click(object sender, EventArgs e)
+        {
+
+
+
+var values1 = new List<double>();
+var values2 = new List<int>();
+
+string file1 = File.ReadAllText("CorrIP10.txt");
+string file2 = File.ReadAllText("CorrPnP10.txt");
+
+var nums1 = file1
+               .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+               .Select(n =>double.Parse(n)).ToArray();
+var nums2 = file2
+                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(n =>double.Parse(n)).ToArray();
+
+
+
+for(inti = 0; i<25; i++)
+            {
+if (nums1[i]> 0.8)
+                {
+values1.Add(nums1[i]);
+values2.Add(i); //позиция
+                }
+            }
+
+var arrval1 = values1.ToArray();
+var arrval2 = values2.ToArray();
+
+StreamWriter writer = new StreamWriter("Conclusion.txt", false);
+
+
+for (inti = 0; i< arrval2.Length; i++)
+            {
+if (Math.Abs(nums1[arrval2[i]] - nums2[arrval2[i]]) > 0.01)
+                {
+writer.WriteLine("Свойство {0} принадлежитобъекту ({1}) ", arrval2[i] + 1, Math.Abs(nums1[arrval2[i]] - nums2[arrval2[i]]));
+                    //label6.Text = string.Format("Свойство {0} принадлежитобъекту ({1}) ", arrval2[i] + 1, Math.Abs(nums1[arrval2[i]] - nums2[arrval2[i]]));
+                }
+else
+                {
+writer.WriteLine("Свойство {0} непринадлежитобъекту ({1}) ", arrval2[i] + 1, Math.Abs(nums1[arrval2[i]] - nums2[arrval2[i]]));
+                    //label6.Text = string.Format("Свойство {0} непринадлежитобъекту ({1})", arrval2[i] + 1, Math.Abs(nums1[arrval2[i]] - nums2[arrval2[i]]));
+                }
+            }
+writer.Close();
+string file3 = File.ReadAllText("Conclusion.txt");
+            label6.Text = file3.ToString();
+
+values1.Clear();
+values2.Clear();
+
+
+        }
+
+private void button9_Click(object sender, EventArgs e)
+        {
+
+
+var values3 = new List<int>();
+var values4 = new List<int>();
+
+string file1 = File.ReadAllText("Info1.txt");
+string file2 = File.ReadAllText("Info2.txt");
+
+var nums1 = file1
+                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(n =>int.Parse(n)).ToArray();
+var nums2 = file2
+                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(n =>int.Parse(n)).ToArray();
+
+int start = int.Parse(textBox2.Text);
+int end = int.Parse(textBox3.Text);
+
+start = start * 10 - 10;
+end = end * 10;
+
+for(inti = start; i<end; i++)
+            {
+values3.Add(nums1[i]);
+values4.Add(nums2[i]);
+            }
+
+double res = Corr(values3.ToArray(), values4.ToArray());
+            label10.Text = string.Format("Анализкорреляции = {0}", res);
+
+values3.Clear();
+values4.Clear();
+        }
+
+public static double Corr(int[] values1, int[] values2)
+        {
+if (values1.Length != values2.Length)
+throw new ArgumentException("values must be the same length");
+
+var avg1 = values1.Average();
+var avg2 = values2.Average();
+
+var sum1 = values1.Zip(values2, (x1, y1) => (x1 - avg1) * (y1 - avg2)).Sum();
+
+var sumSqr1 = values1.Sum(x =>Math.Pow((x - avg1), 2.0));
+var sumSqr2 = values2.Sum(y =>Math.Pow((y - avg2), 2.0));
+
+var result = sum1 / Math.Sqrt(sumSqr1 * sumSqr2);
+
+return result;
+        }
+
+private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+e.Handled = true;
+            }
+        }
+
+private void button2_Click(object sender, EventArgs e)
+        {
+chart1.Series[0].Points.Clear();
+chart1.Series[1].Points.Clear();
+chart1.Series[2].Points.Clear();
+        }
+
+private void button1_Click(object sender, EventArgs e)
+        {
+OpenFileDialog ofd1 = new OpenFileDialog();          
+            ofd1.Multiselect = true;
+if(ofd1.ShowDialog() == DialogResult.OK)
+            {
+firstImg = ofd1.FileNames.ToList();
+                label1.Text = string.Format("Выбранно {0} изображений", firstImg.Count);
+            }
+            bmp2 = new Bitmap(Bitmap.FromFile(firstImg[0]));
+            pictureBox1.Image = bmp2;
+
+        }
+
+private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        {
+if (e.Button == MouseButtons.Left)
+            {
+                x = Cursor.Position.X -295;
+                y = Cursor.Position.Y -63;
+            }
+mousinfo.Text = string.Format("x = {0} y = {1}", x, y);
+        }
+
+private void FuntGo_Click(object sender, EventArgs e)
+        {
+firNum = 448;
+step = 2;
+foreach (var el in firstImg)
+                {
+bmp = new Bitmap(Bitmap.FromFile(el), new Size(726, 936));
+                Color pixel = bmp.GetPixel(x,y);
+int L = (pixel.R + pixel.G + pixel.B) / 3;
+firNum = firNum + step;
+
+StreamWriter writer = new StreamWriter("Info2.txt", true);
+writer.WriteLine(/*firNum + " " + */L );
+writer.Close();
+
+chart1.Series[0].Points.AddXY(firNum, L);
+
+            }
+
+
+        }
+    }
+}
